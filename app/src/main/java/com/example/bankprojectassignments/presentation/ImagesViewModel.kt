@@ -17,12 +17,21 @@ import javax.inject.Inject
 class ImagesViewModel @Inject constructor(private val imagesRepository: ImagesRepository) :
     ViewModel() {
 
-    private val _images:MutableLiveData<Resources<List<Image>>> = MutableLiveData()
-    val images : LiveData<Resources<List<Image>>> = _images
+    private val _imagesSlider:MutableLiveData<Resources<List<Image>>> = MutableLiveData()
+    val imagesSlider : LiveData<Resources<List<Image>>> = _imagesSlider
 
-    fun getImages(query:String , itemNumber :Int = 10) = viewModelScope.launch{
+    private val _imageScroll:MutableLiveData<Resources<List<Image>>> = MutableLiveData()
+    val imageScroll : LiveData<Resources<List<Image>>> = _imageScroll
+
+    fun getImagesSlider(query:String, itemNumber :Int = 10) = viewModelScope.launch{
          imagesRepository.getImages(query , itemNumber).collectLatest {
-             _images.value = it
+             _imagesSlider.value = it
          }
+    }
+
+    fun getImagesScroll(query:String, itemNumber :Int = 15) = viewModelScope.launch{
+        imagesRepository.getImages(query , itemNumber).collectLatest {
+            _imageScroll.value = it
+        }
     }
 }
