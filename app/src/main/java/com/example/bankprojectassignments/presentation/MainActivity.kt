@@ -1,115 +1,118 @@
 package com.example.bankprojectassignments.presentation
 
-import android.app.Activity
-import android.content.Context
-import com.example.bankprojectassignments.R;
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.KeyEvent
-import android.view.inputmethod.InputMethodManager
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSnapHelper
-import androidx.recyclerview.widget.RecyclerView
-import com.example.bankprojectassignments.common.Resources
-import com.example.bankprojectassignments.databinding.ActivityMainBinding
-import com.example.bankprojectassignments.presentation.adapter.ScrollAdapter
-import com.example.bankprojectassignments.presentation.adapter.SliderAdapter
-import com.example.bankprojectassignments.presentation.util.RecyclerViewIndicatorManager
-import com.example.bankprojectassignments.presentation.util.showBottomSheetDialog
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.bankprojectassignments.presentation.ui.BottomSheet
+import com.example.bankprojectassignments.presentation.ui.ScrollItems
+import com.example.bankprojectassignments.presentation.ui.SearchBar
+import com.example.bankprojectassignments.presentation.ui.SliderItems
+import com.example.bankprojectassignments.presentation.ui.theme.BankProjectAssignmentTheme
+import com.example.bankprojectassignments.presentation.ui.theme.BlueLight
+import com.example.bankprojectassignments.presentation.ui.theme.While
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val viewModel by viewModels<ImagesViewModel>()
-    private lateinit var binding: ActivityMainBinding
-    private val sliderAdapter = SliderAdapter()
-    private val scrollAdapter = ScrollAdapter()
-    private val snapHelper = LinearSnapHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        viewModel.getImagesSlider("cat")
-        viewModel.getImagesScroll("dog")
-        setupRecyclerView()
 
-        viewModel.imagesSlider.observe(this) {
-            binding.sliderRV.isVisible = it is Resources.Success || !it.data.isNullOrEmpty()
-            it.data?.let { images ->
-                sliderAdapter.submitList(images)
-                setIndicatorView(it.data.size)
+        viewModel.getImagesSlider("dog")
+        viewModel.getImagesScroll("cat")
+
+
+        setContent {
+            BankProjectAssignmentTheme {
+                var showBottomSheet by remember { mutableStateOf(false) }
+
+                // State for bottom sheet content (e.g., top 3 characters)
+
+                Scaffold(modifier = Modifier.fillMaxSize().padding(top = 20.dp),
+                    floatingActionButton = {
+                        FloatingActionButton(
+                            onClick = { showBottomSheet = !showBottomSheet },
+                            backgroundColor = BlueLight
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        }
+                    },
+                    content = { innerPadding ->
+                        Box(
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .fillMaxSize()
+                        ) {
+                            MainScreen()
+
+                            // Bottom sheet slider
+                            BottomSheet(showBottomSheet = showBottomSheet, viewModel = viewModel)
+                        }
+                    }
+                )
             }
-        }
-
-        viewModel.imageScroll.observe(this) {
-            binding.scrollRv.isVisible = it is Resources.Success || !it.data.isNullOrEmpty()
-            it.data?.let { images ->
-                scrollAdapter.submitList(it.data)
-            }
-        }
-
-
-        binding.SearchEdit.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
-                val query = binding.SearchEdit.text.toString()
-                if (query.isNotBlank())
-                    viewModel.getImagesScroll(query = query)
-                hideKeyboard()
-                true
-            } else {
-                false
-            }
-        }
-
-        binding.floatingActionButton.setOnClickListener {
-            showBottomSheetDialog(
-                viewModel.imagesSlider.value?.data ?: emptyList(),
-                viewModel.imageScroll.value?.data ?: emptyList()
-            )
         }
     }
 
-    fun setupRecyclerView() {
-        binding.sliderRV.adapter = sliderAdapter
-        snapHelper.attachToRecyclerView(binding.sliderRV)
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    private fun MainScreen(){
+        val imagesForSlider = viewModel.imagesSlider.observeAsState()
+        val imagesForScroll = viewModel.imagesScroll.observeAsState()
 
-        binding.scrollRv.adapter = scrollAdapter
-    }
-
-    fun setIndicatorView(itemsCount: Int) {
-        val indicator = RecyclerViewIndicatorManager(
-            context = this,
-            indicatorLayout = binding.indicatorView,
-            selectedDrawableRes = R.drawable.indicator_selected,
-            unSelectedDrawableRes = R.drawable.indicator_unseleted
-        )
-
-        indicator.setupIndicators(itemsCount)
-
-        // Attach Scroll Listener
-        binding.sliderRV.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val position =
-                    (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-                indicator.updateIndicators(position)
+        LazyColumn(modifier = Modifier.heightIn(800.dp)) {
+            
+            item{
+                imagesForSlider.value?.data?.let {
+                    SliderItems(it)
+                }
             }
-        })
-    }
+            stickyHeader{
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(While) // Set a solid background color for the header
+                ) {
+                    SearchBar(
+                        onSearchTextChange = { query ->
+                            viewModel.getImagesScroll(query)
+                        }
+                    )
+                }
+            }
+            item{
+                imagesForScroll.value?.data?.let {
+                    ScrollItems(images = it)
+                }
+            }
 
-    private fun hideKeyboard() {
-        val inputMethodManager = this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        val view = this.currentFocus
-        if (view != null) {
-            inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
+
         }
     }
-
-
 }

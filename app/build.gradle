@@ -32,11 +32,24 @@ android {
     }
 
     buildFeatures{
-        dataBinding true
+        viewBinding true
+        compose true // Enable Compose
     }
+
 
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.4.0' // Use the latest version compatible with your Compose library
+    }
+
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
     }
 }
 
@@ -86,8 +99,19 @@ dependencies {
     // adding activity ktx dependency for using view model in activity
     implementation 'androidx.activity:activity-ktx:1.7.2'
 
-    // glide
-    implementation 'com.github.bumptech.glide:glide:4.12.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+    def compose_version = "1.4.0"
+
+
+    implementation "androidx.compose.ui:ui:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation 'androidx.activity:activity-compose:1.7.2'
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+    implementation "androidx.compose.material:material:1.4.0"
+    // LiveData integration with Compose
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.0" // or latest version
+    implementation "androidx.compose.runtime:runtime-livedata:1.4.0" // or latest version
+
+    implementation "com.github.bumptech.glide:compose:1.0.0-beta01"
+
 }
 

@@ -21,12 +21,12 @@ class ImagesViewModel @Inject constructor(private val imagesRepository: ImagesRe
     val imagesSlider : LiveData<Resources<List<Image>>> = _imagesSlider
 
     private val _imageScroll:MutableLiveData<Resources<List<Image>>> = MutableLiveData()
-    val imageScroll : LiveData<Resources<List<Image>>> = _imageScroll
+    val imagesScroll : LiveData<Resources<List<Image>>> = _imageScroll
 
     fun getImagesSlider(query:String, itemNumber :Int = 10) = viewModelScope.launch{
-         imagesRepository.getImages(query , itemNumber).collectLatest {
-             _imagesSlider.value = it
-         }
+        imagesRepository.getImages(query , itemNumber).collectLatest {
+            _imagesSlider.value = it
+        }
     }
 
     fun getImagesScroll(query:String, itemNumber :Int = 15) = viewModelScope.launch{
