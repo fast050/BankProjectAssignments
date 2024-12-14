@@ -62,9 +62,10 @@ fun ScrollItems(images: List<Image>) {
     LazyColumn(
         modifier =
         Modifier
-            .height(800.dp)
+            .height((80 * images.size).dp)
             .padding(vertical = 8.dp), // Padding for the entire list
-        verticalArrangement = Arrangement.spacedBy(4.dp) // Space between items
+        verticalArrangement = Arrangement.spacedBy(4.dp), // Space between items,
+        userScrollEnabled = false
     ) {
         items(images.size) { index ->
             ScrollItem(image = images[index])
